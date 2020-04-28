@@ -18,7 +18,8 @@ const {
   getIntervalId,
   setPlayerReady,
   startNextRound,
-  endGame
+  endGame,
+  getGameState
 } = require('./users')
 
 const PORT = process.env.PORT || 5000;
@@ -34,13 +35,12 @@ const io = socketio(server);
 
 io.on('connection', (socket) => {
   // When a user creates a game
-  socket.on('create', ({ name, code, rounds }, callback) => {
-    const { error, users } = createGame({ id: socket.id, name, code, rounds })
+  socket.on('create', ({ name, code, rounds, categories }, callback) => {
+    const { error, users } = createGame({ id: socket.id, name, code, rounds, categories })
     if (error) return callback({ error })
 
     socket.join(code)
-    // socket.emit('message', { user: 'admin', text: `${user.name} welcome to the room: ${code}!` })
-    // socket.broadcast.to(code).emit('message', { user: 'admin', text: `${user.name} has joined` })
+
     io.to(code).emit('gameData', { users: getUsersInGame(code) })
     callback({ users });
   })
@@ -49,12 +49,13 @@ io.on('connection', (socket) => {
   socket.on('join', ({ name, code }, callback) => {
     const { error, users } = addUserToGame({ id: socket.id, name, code })
     if (error) return callback({ error })
-    socket.join(code)
-    // socket.emit('message', { user: 'admin', text: `${user.name} welcome to the room!` })
-    // socket.broadcast.to(code).emit('message', { user: 'admin', text: `${user.name} has joined` })
 
-    io.to(code).emit('gameData', { users: getUsersInGame(code) })
-    callback({ users });
+    socket.join(code)
+
+    const { gameState } = getGameState(code)
+
+    io.to(code).emit('gameData', { users: getUsersInGame(code), maxRounds: gameState.maxRounds, categories: gameState.categories })
+    callback({ users, maxRounds: gameState.maxRounds, categories: gameState.categories });
   })
 
   // When game admin starts the game
@@ -88,7 +89,7 @@ io.on('connection', (socket) => {
     if (error) return callback({ error })
     // Check if everyone playing the game has submitted their score
     let allSubmitted = true;
-    allSubmitted = gameState.users.every(user => user.scores[round])
+    allSubmitted = gameState.users.every(user => user.scores.hasOwnProperty(round))
 
     callback({ gameState });
 
@@ -104,9 +105,10 @@ io.on('connection', (socket) => {
 
     callback({ gameState });
 
+    console.log(gameState.maxRounds)
     if (allReady) {
       // If x rounds are done, end game 
-      if (gameState.currentRound === gameState.maxRounds) {
+      if (Number(gameState.currentRound) === Number(gameState.maxRounds)) {
         const finalScores = []
         // calc final score
         const users = gameState.users
@@ -115,9 +117,12 @@ io.on('connection', (socket) => {
           Object.keys(user.scores).forEach(key => {
             score = score + Number(user.scores[key]);
           })
+
+          console.log(user.avatarIndex)
           finalScores.push({
             name: user.name,
-            score
+            score,
+            avatarId: user.avatarIndex
           })
         })
         const endState = endGame(gameState.code)
@@ -166,7 +171,6 @@ io.on('connection', (socket) => {
 server.listen(PORT, () => console.log(`Server has started on port ${PORT}`));
 
 const startTimer = (code) => {
-  console.log('timer')
   let intervalID = setInterval(() => {
     let gameState = incrementTimerValue(code)
     if (gameState.currentTimerValue == 61) {

@@ -9,7 +9,7 @@ const intervalCodePairs = {
 //   score: { 0: 10, 1: 20 }
 // }
 
-const createGame = ({ id, name, code, rounds }) => {
+const createGame = ({ id, name, code, rounds, categories }) => {
   const user = {
     responses: {},
     scores: {},
@@ -29,7 +29,8 @@ const createGame = ({ id, name, code, rounds }) => {
       possibleAvatars: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
       currentAlphabet: '',
       intervalId: '',
-      maxRounds: rounds
+      maxRounds: rounds,
+      categories
     }
     let randomIndex = Math.floor(Math.random() * games[code].possibleAvatars.length);
     user.avatarIndex = games[code].possibleAvatars.splice(randomIndex, 1)[0];
@@ -167,6 +168,8 @@ const endGame = (code) => {
   return games[code]
 }
 
+const getGameState = (code) => games[code] ? { gameState: games[code] } : { error: 'Game not found' }
+
 module.exports = {
   createGame,
   addUserToGame,
@@ -183,5 +186,6 @@ module.exports = {
   getIntervalId,
   setPlayerReady,
   startNextRound,
-  endGame
+  endGame,
+  getGameState
 }
