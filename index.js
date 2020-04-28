@@ -105,7 +105,6 @@ io.on('connection', (socket) => {
 
     callback({ gameState });
 
-    console.log(gameState.maxRounds)
     if (allReady) {
       // If x rounds are done, end game 
       if (Number(gameState.currentRound) === Number(gameState.maxRounds)) {
@@ -118,7 +117,6 @@ io.on('connection', (socket) => {
             score = score + Number(user.scores[key]);
           })
 
-          console.log(user.avatarIndex)
           finalScores.push({
             name: user.name,
             score,
@@ -138,6 +136,16 @@ io.on('connection', (socket) => {
         if (gameState) io.to(code).emit('allPlayersReady', { gameState })
       }
       callback(gameState);
+    }
+  })
+
+  socket.on('removeUserFromGame', ({ code }, callback) => {
+    const user = removeUser(socket.id)
+    if (user) {
+      socket.leave(code, () => {
+        io.to(code).emit('gameData', { users: getUsersInGame(user.code) })
+        callback({})
+      });
     }
   })
 

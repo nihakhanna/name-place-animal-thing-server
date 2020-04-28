@@ -111,7 +111,7 @@ const setIntervalId = (code, id) => {
 const getIntervalId = (code) => intervalCodePairs[code]
 
 const submitUserScore = ({ id, code, score, round }) => {
-  if (score > 40 || score < 0) {
+  if (score > games[code].categories.length * 10 || score < 0) {
     return { error: 'Invalid Score Value' }
   }
   const game = games[code];
