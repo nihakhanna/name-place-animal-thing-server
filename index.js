@@ -72,6 +72,11 @@ io.on('connection', (socket) => {
     callback(gameState);
   })
 
+  socket.on('restartGame', ({ code }, callback) => {
+    io.to(code).emit('restartGame')
+    callback();
+  })
+
   // Collect player responses and check if everyone has sent their responses
   socket.on('sendResponse', ({ code, response, round }, callback) => {
     const gameState = submitUserResponse({ id: socket.id, code, response, round })
@@ -123,7 +128,7 @@ io.on('connection', (socket) => {
             avatarId: user.avatarIndex
           })
         })
-        const endState = endGame(gameState.code)
+        const endState = endGame(code)
         io.to(code).emit('gameEnded', { scores: finalScores, gameState: endState })
       } else {
         // select an alphabet

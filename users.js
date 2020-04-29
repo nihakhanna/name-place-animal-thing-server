@@ -155,17 +155,28 @@ const getUsersInGame = (code) => games[code] ? games[code].users : []
 
 const endGame = (code) => {
   if (games[code]) {
-    games[code] = Object.assign({}, {
+    games[code] = {
       started: false,
       currentRound: 0,
       currentTimerValue: 0,
       possibleAlphabets: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'],
       currentAlphabet: '',
       intervalId: '',
-      users: games[code].users
-    })
+      maxRounds: games[code].maxRounds,
+      categories: games[code].categories,
+      users: games[code].users.map(user => ({
+        id: user.id,
+        name: user.name,
+        code: user.code,
+        avatarIndex: user.avatarIndex,
+        responses: {},
+        scores: {},
+        ready: {}
+      }))
+    }
+    return games[code]
   }
-  return games[code]
+  return {}
 }
 
 const getGameState = (code) => games[code] ? { gameState: games[code] } : { error: 'Game not found' }
