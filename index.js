@@ -35,8 +35,9 @@ const io = socketio(server);
 
 io.on('connection', (socket) => {
   // When a user creates a game
-  socket.on('create', ({ name, code, rounds, categories }, callback) => {
-    const { error, users } = createGame({ id: socket.id, name, code, rounds, categories })
+  socket.on('create', ({ name, code, rounds, categories, scoringType }, callback) => {
+
+    const { error, users } = createGame({ id: socket.id, name, code, rounds, scoringType, categories })
     if (error) return callback({ error })
 
     socket.join(code)
@@ -82,15 +83,22 @@ io.on('connection', (socket) => {
     const gameState = submitUserResponse({ id: socket.id, code, response, round })
     let allSubmitted = true;
     allSubmitted = gameState.users.every(user => user.responses[round])
-
+    let scorePartners = []
     callback();
     if (allSubmitted) {
-      io.to(code).emit('allSubmitted', { gameState })
+      gameState.users.forEach((user, index) => {
+        if (index == gameState.users.length - 1) {
+          scorePartners.push([user, gameState.users[0]])
+        } else {
+          scorePartners.push([user, gameState.users[index + 1]])
+        }
+      })
+      io.to(code).emit('allSubmitted', { gameState, scorePartners })
     }
   })
 
-  socket.on('sendScore', ({ code, score, round }, callback) => {
-    const { gameState, error } = submitUserScore({ id: socket.id, code, score, round })
+  socket.on('sendScore', ({ id, code, score, round }, callback) => {
+    const { gameState, error } = submitUserScore({ id, code, score, round })
     if (error) return callback({ error })
     // Check if everyone playing the game has submitted their score
     let allSubmitted = true;

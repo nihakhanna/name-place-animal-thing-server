@@ -9,7 +9,7 @@ const intervalCodePairs = {
 //   score: { 0: 10, 1: 20 }
 // }
 
-const createGame = ({ id, name, code, rounds, categories }) => {
+const createGame = ({ id, name, code, rounds, categories, scoringType }) => {
   const user = {
     responses: {},
     scores: {},
@@ -30,8 +30,11 @@ const createGame = ({ id, name, code, rounds, categories }) => {
       currentAlphabet: '',
       intervalId: '',
       maxRounds: rounds,
-      categories
+      categories,
+      scoringType
     }
+
+
     let randomIndex = Math.floor(Math.random() * games[code].possibleAvatars.length);
     user.avatarIndex = games[code].possibleAvatars.splice(randomIndex, 1)[0];
     games[code].users.push(user)
