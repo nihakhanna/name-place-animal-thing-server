@@ -103,18 +103,21 @@ io.on("connection", (socket) => {
       round,
     });
     let allSubmitted = true;
-    allSubmitted = gameState.users.every((user) => user.responses[round]);
-    let scorePartners = [];
-    callback();
-    if (allSubmitted) {
-      gameState.users.forEach((user, index) => {
-        if (index == gameState.users.length - 1) {
-          scorePartners.push([user, gameState.users[0]]);
-        } else {
-          scorePartners.push([user, gameState.users[index + 1]]);
-        }
-      });
-      io.to(code).emit("allSubmitted", { gameState, scorePartners });
+
+    if (gameState) {
+      allSubmitted = gameState.users.every((user) => user.responses[round]);
+      let scorePartners = [];
+      callback();
+      if (allSubmitted) {
+        gameState.users.forEach((user, index) => {
+          if (index == gameState.users.length - 1) {
+            scorePartners.push([user, gameState.users[0]]);
+          } else {
+            scorePartners.push([user, gameState.users[index + 1]]);
+          }
+        });
+        io.to(code).emit("allSubmitted", { gameState, scorePartners });
+      }
     }
   });
 
@@ -137,7 +140,10 @@ io.on("connection", (socket) => {
     if (error) return callback({ error });
     // Check if everyone playing the game has submitted their score
     let allReady = true;
-    allReady = gameState.users.every((user) => user.ready[round]);
+
+    if (gameState) {
+      allReady = gameState.users.every((user) => user.ready[round]);
+    }
 
     callback({ gameState });
 

@@ -89,7 +89,7 @@ const addUserToGame = ({ id, name, code }) => {
     return { error: "Uh.. oh.. too many players in the game" };
 
   let randomIndex = Math.floor(
-    Math.random() * games[code]?.possibleAvatars.length
+    Math.random() * games[code]?.possibleAvatars?.length
   );
 
   const user = {
