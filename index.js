@@ -350,9 +350,11 @@ const startNextRound = (code) => {
 
 const selectRandomAlphabet = (code) => {
   let game = games[code];
+
+  if (!game) return;
   let randomIndex = Math.floor(Math.random() * game?.possibleAlphabets.length);
   if (randomIndex !== -1) {
-    game?.currentAlphabet = game?.possibleAlphabets[randomIndex];
+    game.currentAlphabet = game?.possibleAlphabets[randomIndex];
     return game.possibleAlphabets.splice(randomIndex, 1)[0];
   }
   return;
